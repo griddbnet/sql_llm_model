@@ -29,9 +29,9 @@ The last two models left for consideration were OpenAI’s GPT-2 and Google’s 
 
 Three individual data sets with similar characteristics that had been used to train text to SQL models were found:
 
-https://huggingface.co/datasets/b-mc2/sql-create-context
-https://huggingface.co/datasets/Clinton/Text-to-sql-v1
-https://huggingface.co/datasets/knowrohit07/know_sql
+* https://huggingface.co/datasets/b-mc2/sql-create-context
+* https://huggingface.co/datasets/Clinton/Text-to-sql-v1
+* https://huggingface.co/datasets/knowrohit07/know_sql
 
 Between the three datasets, they have nearly 400,000 rows of data. Each row, contains:
 
@@ -120,7 +120,7 @@ Would produce :
 We created five to six templated queries that both did and did not use the TIMESTAMP() function for five different contexts which both did and did not use multiple tables per the Key-Container model and then with the dataset creation tool, generated 100 different question/answer pairs per query for a total of 3600 queries. As automatic dataset splitting resulted in a disproportionate amounts of one context over another in the test dataset, a second test dataset was generated with only a single question/answer pair for each templated query.
 
 
-# Fine tuning (training)
+# Fine Tuning
 
 For both the filtered data set and the generated GridDB data set, each training data item s combined into a single string of the format: 
 
@@ -278,3 +278,5 @@ While the model is easily incorporated into any Flask or other Python applicatio
 # Conclusion
 
 Using LLM, end users including IoT device owners, corporate analysts, managers, customer service, and others are able to query data stored in GridDB without having to know SQL. While the queries used to demonstrate the LLM in this project are relatively simple, the model appears to be extensible to other query types and methods. Furthermore, the T5-small model is efficient to train, not requiring large investments in hardware to to train or run inference on. 
+
+The source code used in the project is available at https://github.com/griddbnet/sql_llm_model. The finished model can be downloaded from HuggingFace <TODO>.
