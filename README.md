@@ -1,47 +1,49 @@
 # Introduction
 
-With the rise of popularity of using Large Language Models (LLMs), general purpose models like GPT-4 have attracted the most interest and media coverage but many other specialized models exist for the purpose of code generation.While many of these models are very large and require immense compute power to train and execute, some LLMs can be trained and executed on platforms that are practical and cost effective.
+With the rise in popularity of using Large Language Models (LLMs), general purpose models like GPT-4 have attracted the most interest and media coverage, but many other specialized models exist for the purpose of code generation. While many of these models are extremely large and require immense compute power to train and execute, some LLMs can be trained and executed on platforms that are practical and cost effective.
 
-In this technical report, we demonstrate using a LLM to generate queries for use with GridDB's SQL interface. After creating the model we measure the model accuracy and show how to integrate the model into a Flask Application.
+In this technical report, we demonstrate using an LLM to generate queries for use with GridDB's SQL interface. After creating the model we measure the model accuracy and show how to integrate the model into a Flask Application.
 
-As every database uses a slightly different form SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine tuned for GridDB, an off the shelf LLM would not produce suitable queries.
+Every database uses a slightly different form of SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine-tuned for GridDB and experience tells us that an off the shelf LLM would not produce suitable queries.
 
-The process used to create and use LLM for GridDB is as follows:
+The process used to create and use an LLM for GridDB is as follows:
 
-1. Determine SQL Generation performance of other models and the feasibility of fine tuning other models. 
-2. Find the datasets that were used to train for the models selected in Step 1.
-3. Filter out any queries that are not supported by GridDB and fine tune the model and ensure accuracy is still reasonable.
-4. Create a data set that uses GridDB specific features, Time series range selection and Key-Container.
-5. Fine tune the model with our new GridDB specific dataset and evaluate the accuracy as measured by the percentage of the number of responses that matched the human answer in the evaluation data split. 
+1. Determine SQL Generation performance of other models and the feasibility of fine tuning these other models. 
+2. Find the datasets that were used to train the models selected in Step 1.
+3. Filter out any queries that are not supported by GridDB and fine-tune the model to ensure accuracy is still reasonable.
+4. Create a data set that uses GridDB specific features: time series range selection and Key-Container.
+5. Fine-tune the model with our new GridDB specific dataset and evaluate the accuracy as measured by the percentage of the number of responses that matched the human answer in the evaluation data split. 
 6. Demonstrate inference within a Python Flask application. 
 
 
 # Existing Model Evaluation
 
-Closed source, general purpose models such as GPT-4 were immediately dismissed as the bulk of SQL related material they consumed for training would have been for mainstream databases such as Oracle, Postgres, and SQLite and their closed source nature would make it difficult to train or fine tune the models for GridDB.
+Closed source, general purpose models such as GPT-4 were immediately dismissed as the bulk of SQL related material they consumed for training would have been for mainstream databases such as Oracle, Postgres, and SQLite. Not only that, but their closed source nature would make it difficult to train or fine-tune the models for GridDB.
 
-DeFog.AI’s SQLCoder model based on LLAMA was tested and performed well, but the original models did not support GridDB’s time series SQL semantics. Furthermore, the hardware and time requirements to fine tune or run inference with SQLCoder was not feasible. Likewise, StarCoder was examined and its reported accuracy was deemed to be significantly poorer than SQLCoder while being just as difficult to fine tune. 
+DeFog.AI’s SQLCoder model based on LLAMA was tested and performed well, but the original models did not support GridDB’s time series SQL semantics. Furthermore, the hardware and time requirements to fine-tune or run inference with SQLCoder was not feasible. Likewise, StarCoder was examined and its reported accuracy was deemed to be significantly poorer than SQLCoder while being just as difficult to fine-tune. 
 
-The last two models left for consideration were OpenAI’s GPT-2 and Google’s T5-Small models. After fine tuning both with our selected datasets, T5-Small was generally more accurate and trouble free while performing fine tuning. Other parties had already used GPT-2 and T5-Small to create SQL generating LLMs and between the two, accuracy was better with T5-Small. Furthermore, 18 of the 36 
+The last two models left for consideration were OpenAI’s GPT-2 and Google’s T5-Small models. After fine tuning both with our selected datasets, T5-Small was generally more accurate and trouble-free while performing fine tuning. Other parties had already used GPT-2 and T5-Small to create SQL generating LLMs and between the two, accuracy was better with T5-Small. 
+
+***Furthermore, 18 of the 36*** <-- fix
 
 
 # Dataset Selection
 
-Three individual data sets with similar characteristics that had been used to train text to SQL models were found:
+Three individual datasets with similar characteristics that had been used to train text to SQL models were found:
 
 * https://huggingface.co/datasets/b-mc2/sql-create-context
 * https://huggingface.co/datasets/Clinton/Text-to-sql-v1
 * https://huggingface.co/datasets/knowrohit07/know_sql
 
-Between the three datasets, they have nearly 400,000 rows of data. Each row, contains:
+Between the three datasets, they have nearly 400,000 rows of data. Each row contains:
 
-A context or the SQL schema
-The question to be converted into a SQL query.
-The answer, the SQL query based on the question and context.
+* A context or the SQL schema
+* The question to be converted into a SQL query.
+* The answer, the SQL query based on the question and context.
 
 For example:
 
-```
+```bash
 { 
   “answer” : “SELECT COUNT(*) FROM head WHERE age > 56”,
   “question” : “How many heads of the departments are older than 56 ?”
@@ -51,9 +53,9 @@ For example:
 
 # Dataset Filtering
 
-The first problem seen in these third party datasets is that some of the queries do not work with GridDB. A simple script was created to execute the context statement and then the query statement for each row in the dataset, if the query was executed successfully then it would be saved to the filtered data set.
+The first problem seen in these third party datasets is that some of the queries do not work with GridDB. A simple script was created to execute the context statement and then the query statement for each row in the dataset, if the query was executed successfully, then it would be saved to the filtered dataset.
 
-```
+```python
 for line in fd.readlines():
     data = json.loads(line)
     data[answer_name] = re.sub('"', '\'', data[answer_name])
@@ -73,7 +75,6 @@ for line in fd.readlines():
 
     except:
         bad=bad+1
-
 ```
 
 Of the nearly 400,000 queries in the original datasets, 170,000 of them functioned in GridDB and were used to perform initial model fine tuning. The dataset was split 80/10/10 for training, validation, and testing and fine tuning ran on top of the base T5-small model.
@@ -82,16 +83,15 @@ Of the nearly 400,000 queries in the original datasets, 170,000 of them function
 
 None of the data in the filtered dataset supports GridDB specific functionality. While GridDB has many unique SQL features not shared with any other database, we wanted to focus on the two most basic.
 
-The first is GridDB’s Key-Container data model. Most relational databases store all data in one table while GridDB recommends splitting data into multiple tables. For example, data for device #1 would be stored in tsdata_1 and data for device #20 in tsdata_20 so the human question of “What is the maximum temperature recorded on device 12?” would be the SQL query of `SELECT max(temp) FROM tsdata_12` instead of `SELECT max(temp) FROM tsdata WHERE device = ‘12’” as would be normal in another database`
+The first is GridDB’s Key-Container data model. Most relational databases store all data in one table, while GridDB recommends splitting data into multiple tables. For example, data for device #1 would be stored in tsdata_1 and data for device #20 in tsdata_20 so the human question of “What is the maximum temperature recorded on device 12?” would be the SQL query of `SELECT max(temp) FROM tsdata_12` instead of `SELECT max(temp) FROM tsdata WHERE device = ‘12’”` as would be normal in another database.
 
-Secondly was to support fetching data, in particular aggregations for a given period. GridDB uses uses the TIMESTAMP() SQL function to compare time series data in a query so for example, to select average temperature in 2024, you would use the query `SELECT avg(temp) from tsdata_12 where ts >= TIMESTAMP(‘2024-01-01’) and ts < TIMESTAMP(‘2025-01-01’)`.
+The second featured we wanted to support was fetching data, in particular aggregations for a given period. GridDB uses the TIMESTAMP() SQL function to compare time series data in a query. For example, to select average temperature in 2024, you would use the query `SELECT avg(temp) from tsdata_12 where ts >= TIMESTAMP(‘2024-01-01’) and ts < TIMESTAMP(‘2025-01-01’)`.
 
 To do this, a new tool was developed that could generate a human question with corresponding SQL query answer based on a given template. Iterating on the template with random values for the time period, container identifier, aggregation, etc would build a reasonable sized data set to fine tune the model with. 
 
 An example input template: 
 
-
-```
+```bash
 {
     "context" : "CREATE TABLE IF NOT EXISTS devices (device_id INTEGER, ts TIMESTAMP, co DOUBLE, humidity DOUBLE,light BOOL,lpg DOUBLE,motion BOOL,smoke DOUBLE,temp DOUBLE);",
     "queries" : [
@@ -108,7 +108,7 @@ An example input template:
 
 Would produce :
 
-```
+```bash
 {"context": "CREATE TABLE IF NOT EXISTS devices (device_id INTEGER, ts TIMESTAMP, co DOUBLE, humidity DOUBLE,light BOOL,lpg DOUBLE,motion BOOL,smoke DOUBLE,temp DOUBLE);", 
 "question": "What is the lowest smoke in 2009 for all devices?", 
 "answer": "SELECT MIN(smoke) FROM devices WHERE ts > TIMESTAMP('2009-01-01T00:00:00Z') and ts < TIMESTAMP('2010-01-01T00:00:00Z');"}
@@ -122,9 +122,9 @@ We created five to six templated queries that both did and did not use the TIMES
 
 # Fine Tuning
 
-For both the filtered data set and the generated GridDB data set, each training data item s combined into a single string of the format: 
+For both the filtered data set and the generated GridDB data set, each training data item combined into a single string of the format: 
 
-```
+```bash
 Tables:
 {context}
 
@@ -135,9 +135,9 @@ Answer:
 
 The above string is then tokenized using the HuggingFace AutoTokenizer and used as the input identifier while the answer is tokenized as the labels. After the dataset has been tokenized, it is trained using HuggingFace’s Trainer library. 
 
-Additional tokens for < and <= need to be added to the tokenizer otherwise those symbols with the SQL statements would be ignored by the model during training.
+Additional tokens for `<` and `<=` need to be added to the tokenizer otherwise those symbols with the SQL statements would be ignored by the model during training.
 
-```
+```python
 def tokenize_function(example):
     
     start_prompt = "Tables:\n"
@@ -183,13 +183,13 @@ trainer = Trainer(
 trainer.train()
 ```
 
-Using an  AMD Ryzen Threadripper 2990WX with an NVIDIA 4070GTX, training took approximately 3-4 hours to complete for the filtered dataset and under an hour to complete for the generated dataset. 
+Using an AMD Ryzen Threadripper 2990WX with an NVIDIA 4070GTX, training took approximately 3-4 hours to complete for the filtered dataset and under an hour to complete for the generated dataset. 
 
 # Evaluation
 
 Using either the 10% test split of the training dataset or the generated test dataset, the same tokenization method was used to build input for the model. The output answer was generated for every input and compared using HuggingFace’s ROUGE evaluation library. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summiztion models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
 
-```
+```python
 try:
     for stmt in data[context_name].split(";"):
         stmt = stmt.strip()
@@ -210,13 +210,13 @@ except:
 
 For the filtered data set, the 10% test split was used for the evaluation which produced ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, and rougeLsum: 0.9046684414637445. This compares well with the cssupport/t5-small-awesome-text-to-sql model.
 
-For the GridDB specific queries, the generated data set had ROUGE metrics of  rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
+For the GridDB specific queries, the generated data set had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
 
 # Production Implementation
 
 Using the model in production is straight forward. The context can be fetched using GridDB's NoSQL API:
 
-```
+```python
 containers = []
 x = 0
 while x < gridstore.partition_info.partition_count:
@@ -240,7 +240,7 @@ return create_stmts
 
 Inference for a single question is performed in a similiar fashion to how evalution was performed.
 
-```
+```python
 model = AutoModelForSeq2SeqLM.from_pretrained("griddb_model_2_epoch")
 tokenizer = AutoTokenizer.from_pretrained("t5-small")
 def translate_to_sql_select(context, question):
@@ -258,7 +258,7 @@ Answer:
 
 Finally a Flask route gets the local context, calls the model, executes the query, and returns the response.
 
-```
+```python
 @app.route('/nlquery')
 def nlquery():
     question = request.args.get('question')
