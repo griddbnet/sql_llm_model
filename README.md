@@ -24,8 +24,6 @@ DeFog.AI’s SQLCoder model based on LLAMA was tested and performed well, but th
 
 The last two models left for consideration were OpenAI’s GPT-2 and Google’s T5-Small models. After fine tuning both with our selected datasets, T5-Small was generally more accurate and trouble-free while performing fine tuning. Other parties had already used GPT-2 and T5-Small to create SQL generating LLMs and between the two, accuracy was better with T5-Small. 
 
-***Furthermore, 18 of the 36*** <-- fix
-
 
 # Dataset Selection
 
