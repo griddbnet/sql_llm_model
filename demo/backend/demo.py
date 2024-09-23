@@ -6,7 +6,7 @@ import torch
 import jpype
 import jpype.dbapi2
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, GenerationConfig
-
+from context import *
 jpype.startJVM(jpype.getDefaultJVMPath(), "-ea")
 url = "jdbc:gs://192.168.168.192:20001/myCluster/public"
 conn = jpype.dbapi2.connect(url, driver="com.toshiba.mwcloud.gs.sql.Driver", driver_args={"user": "admin", "password": "admin"})
@@ -15,6 +15,8 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 print("Using ",device)
 model = AutoModelForSeq2SeqLM.from_pretrained("griddbnet/griddb_sql_llm").to(device)
 tokenizer = AutoTokenizer.from_pretrained("t5-small")
+new_tokens = ['<=', '<= ', ' <=', ' <', '<', '< ', '>= ', ' >=', '>=']
+tokenizer.add_tokens(new_tokens)
 
 def translate_to_sql_select(context, question):
     prompt = f"""Tables:
@@ -32,43 +34,23 @@ Answer:
     return sql_query
 
 
-
-app = Flask(__name__,
-            static_url_path='', 
-            static_folder='web/static',
-            template_folder='web/templates')
-
-cors = CORS(app)
-
-@app.route('/')
-@cross_origin()
-def root():
-    return app.send_static_file('index.html')
-
-@app.route('/query')
-@cross_origin()
-def query():
-   start = time.time()
-   question = request.args.get('question')
-   context = request.args.get('context')
-   query = translate_to_sql_select(context,question)
-   print(context)
-   print(question)
-   print(time.time() - start, ":", query)
-   return query
-
-@app.route('/nlquery')
-def nlquery():
-    question = request.args.get('question')
+def nlquery(question):
     context = get_local_context() 
+    print("Question:", question)
     query = translate_to_sql_select(context,question)
+    print("Query:", query)
     curs = conn.cursor()
     try:
         curs.execute(query)
         rows = curs.fetchall()
-        return json.dumps(rows) 
+        print("Rows:",rows)
     except: 
-        abort(400, 'Generated query was not successful') 
+        print("invalid query")
+        
 
 if __name__ == '__main__':
-   app.run(port=2929, debug=True)
+    nlquery("Show all logs from server foo")
+    nlquery("What is the highest bytesSent for server baz?")
+    nlquery("What is the average contentLength in March 9, 2009 for the server foo?")
+    nlquery("How many status code 404 on server bar on April 4, 2010?")
+
