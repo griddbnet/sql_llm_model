@@ -10,7 +10,7 @@ DB_USER = "admin"
 DB_PASS = "admin"
 gridstore = factory.get_store(
             notification_member=DB_HOST, cluster_name=DB_CLUSTER, username=DB_USER, password=DB_PASS)
- 
+
 list_of_statements = []
 
 def type_mapping(type_num):
@@ -45,7 +45,7 @@ def col_name_and_type(schema):
     str = str+");"
     return str
 
-def get_select_statements():
+def get_local_context():
     try:
         containers = []
         x = 0
@@ -73,7 +73,7 @@ def get_select_statements():
             print(e.get_message(i))
 
 def main():
-    print(get_select_statements())
+    print(get_local_context())
 
 if __name__=="__main__":
     main()
