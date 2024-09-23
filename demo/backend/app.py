@@ -1,10 +1,12 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, abort
 from flask_cors import CORS, cross_origin
+#from context import get_col_names
 import json
 import os
 #import torch
 import jpype
 import jpype.dbapi2
+import time
 
 jpype.startJVM(jpype.getDefaultJVMPath(), "-ea")
 url = "jdbc:gs://127.0.0.1:20001/myCluster/public"
@@ -57,18 +59,38 @@ def query():
    print(time.time() - start, ":", query)
    return query
 
+
+
 @app.route('/nlquery')
 def nlquery():
-    question = request.args.get('question')
-    context = get_local_context() 
-    query = translate_to_sql_select(context,question)
+   # question = request.args.get('question')
+   # context = "CREATE TABLE IF NOT EXISTS LOG_foo (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING); CREATE TABLE IF NOT EXISTS LOG_bar (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING); CREATE TABLE IF NOT EXISTS LOG_baz (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING);"
+    # lets hard code query 
+    # query = translate_to_sql_select(context,question)
+    query = "Select humidity,co,light from device;"
     curs = conn.cursor()
+    #col_names = get_col_names('device')
+   # print(col_names)
     try:
         curs.execute(query)
         rows = curs.fetchall()
-        return json.dumps(rows) 
-    else:
-        abort(400, 'Generated query was not successful') 
+        return json.dumps(rows, default=str)
+    except Exception as e: 
+        print(e)
+        abort(400, 'Generated query was not successful')
+
+#@app.route('/nlquery')
+#def nlquery():
+#    question = request.args.get('question')
+#    context = get_local_context() 
+#    query = translate_to_sql_select(context,question)
+#    curs = conn.cursor()
+#   try:
+#        curs.execute(query)
+#        rows = curs.fetchall()
+#        return json.dumps(rows) 
+#    except:
+#        abort(400, 'Generated query was not successful') 
 
 if __name__ == '__main__':
    app.run(port=2929, debug=True)
