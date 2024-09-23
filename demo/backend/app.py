@@ -67,7 +67,7 @@ def nlquery():
    # context = "CREATE TABLE IF NOT EXISTS LOG_foo (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING); CREATE TABLE IF NOT EXISTS LOG_bar (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING); CREATE TABLE IF NOT EXISTS LOG_baz (timestamp TIMESTAMP, statusCode INTEGER, bytesReceived INTEGER, bytesSent INTEGER, contentLength INTEGER, requestedURL STRING);"
     # lets hard code query 
     # query = translate_to_sql_select(context,question)
-    query = "Select humidity,co,light from device;"
+    query = "Select humidity from device;"
     curs = conn.cursor()
     #col_names = get_col_names('device')
    # print(col_names)

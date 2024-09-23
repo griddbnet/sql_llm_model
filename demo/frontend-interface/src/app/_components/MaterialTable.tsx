@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import {
-  MRT_Table, //import alternative sub-component if we do not want toolbars
+  MaterialReactTable, //import alternative sub-component if we do not want toolbars
   type MRT_ColumnDef,
   useMaterialReactTable,
 } from 'material-react-table';
 
+
 type Col = {
   header: string,
-  accessorKey: string
+  accessorKey: string,
 }
 
 type GenericRowData = {
@@ -22,11 +23,17 @@ export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) =>
     const tmp = {
       accessorKey: `col-#-${i}`,
       header: `col-#-${i}`,
+      muiTableBodyCellProps: {
+        align: "center"
+      },
+      muiTableHeadCellProps: {
+        align: "center"
+      }
     }
     cols.push(tmp)
   }
 
-  const columns = useMemo<MRT_ColumnDef<any>[]>(
+  const columns = useMemo<MRT_ColumnDef<GenericRowData>[]>(
     () => cols,
     [queryResults, cols],
   );
@@ -45,44 +52,55 @@ export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) =>
     return chartData
   }, [queryResults])
 
+  const baseBackgroundColor = 'rgba(3, 44, 43, 1)'
+
+
   const table = useMaterialReactTable({
     columns,
     data: data,
     enableKeyboardShortcuts: false,
     enableColumnActions: false,
     enableColumnFilters: false,
-    enablePagination: false,
+    enableTopToolbar: false,
+    enablePagination: true,
     enableSorting: false,
-    mrtTheme: (theme) => ({
-      baseBackgroundColor: theme.palette.background.default, //change default background color
-    }),
+    positionPagination: "both",
+    muiPaginationProps: {
+      color: 'secondary',
+      shape: 'rounded',
+      showRowsPerPage: true,
+    },
     muiTableBodyRowProps: { hover: false },
+    mrtTheme: () => ({
+      baseBackgroundColor: baseBackgroundColor,
+    }),
     muiTableProps: {
       sx: {
         border: '1px solid rgba(81, 81, 81, .5)',
         caption: {
           captionSide: 'top',
         },
+        color: 'white',
+
       },
     },
     muiTableHeadCellProps: {
       sx: {
         border: '1px solid rgba(81, 81, 81, .5)',
-        fontStyle: 'italic',
-        fontWeight: 'normal',
+        fontWeight: 'bold',
+        color: 'white',
+        backgroundColor: 'rgba(3, 55, 43, 1)',
       },
     },
     muiTableBodyCellProps: {
       sx: {
         border: '1px solid rgba(81, 81, 81, .5)',
+        color: 'white',
       },
-    },
-    renderCaption: ({ table }) =>
-      `Here is a table rendered with the lighter weight MRT_Table sub-component, rendering ${table.getRowModel().rows.length} rows.`,
+    }
   });
 
-  //using MRT_Table instead of MaterialReactTable if we do not need any of the toolbar components or features
-  return <MRT_Table table={table} />;
+  return <MaterialReactTable table={table} />;
 };
 
 export default MaterialTable;
