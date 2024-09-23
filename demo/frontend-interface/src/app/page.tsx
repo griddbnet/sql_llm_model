@@ -3,6 +3,7 @@ import * as React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { MagnifyingGlass } from 'react-loader-spinner'
 
 const darkTheme = createTheme({
   palette: {
@@ -16,32 +17,27 @@ type Question = {
   question: string
 }
 
-const URL = '/query';
-const resURL = '/nlquery'
+const URL = '/nlquery';
+//const resURL = '/nlquery'
 
-const initialQuestion = "What is the highest value for event_bar in April 2016?";
+const initialQuestion = "What is the highest bytesSent for server baz?";
 const initialQuery = "SELECT MAX(value) FROM event_bar WHERE event_id = 10 and time_fired > TIMESTAMP('2016-04-01T00:00:00Z') and time_fired < TIMESTAMP('2016-05-01T00:00:00Z')";
 
 const examples = [
   {
     num: 1,
-    question: "Show all people older than 30",
+    question: "What is the highest bytesSent for server baz?",
     context: "CREATE TABLE head (name VARCHAR, born_state VARCHAR, age VARCHAR)"
   },
   {
     num: 2,
     context: "CREATE TABLE IF NOT EXISTS devices (device_id INTEGER, ts TIMESTAMP, co DOUBLE, humidity DOUBLE,light BOOL,lpg DOUBLE,motion BOOL,smoke DOUBLE,temp DOUBLE);",
-    question: "What is the average lpg ?",
+    question: "What is the average contentLength in March 9, 2009 for the server foo?",
   },
   {
     num: 3,
     context: "CREATE TABLE IF NOT EXISTS iot_meter_foo (meter_id INTEGER, ts TIMESTAMP, kwh DOUBLE, temp DOUBLE, aqi DOUBLE); CREATE TABLE IF NOT EXISTS iot_meter_bar (meter_id INTEGER, ts TIMESTAMP, kwh DOUBLE, temp DOUBLE, aqi DOUBLE); CREATE TABLE IF NOT EXISTS iot_meter_baz (meter_id INTEGER, ts TIMESTAMP, kwh DOUBLE, temp DOUBLE, aqi DOUBLE);",
-    question: "When is the highest aqi for all meters at location baz?",
-  },
-  {
-    num: 4,
-    context: "CREATE TABLE IF NOT EXISTS bill_records (billing_date TIMESTAMP, location STRING, total_kwh DOUBLE, amount DOUBLE, daily_kwh DOUBLE);",
-    question: "What is the highest total_kwh in 2020 for all bill_records?",
+    question: "How many status code 404 on server bar on April 4, 2010?",
   }
 
 ];
@@ -51,6 +47,9 @@ export default function Home() {
   const [formedQuery, setFormedQuery] = React.useState("");
   const [toggleExamples, setToggleExamples] = React.useState(false);
   const [queryResults, setQueryResults] = React.useState([]);
+  const [modelTime, setModelTime] = React.useState(0);
+  const [queryTime, setQueryTime] = React.useState(0);
+  const [loading, setLoading] = React.useState(false);
 
   const {
     register,
@@ -60,20 +59,8 @@ export default function Home() {
 
   const onSubmit: SubmitHandler<Question> = (data: Question) => {
     console.log(data);
+    setLoading(true);
     fetch(`${URL}?question=${data.question}`, {
-      method: "GET",
-      mode: "no-cors",
-      cache: "no-cache"
-    })
-      .then(res => res.text())
-      .then(
-        result => {
-          setFormedQuery(result);
-        })
-  }
-
-  const getResults = async () => {
-    fetch(`${resURL}?`, {
       method: "GET",
       mode: "no-cors",
       cache: "no-cache"
@@ -81,10 +68,13 @@ export default function Home() {
       .then(res => res.json())
       .then(
         result => {
-          console.log("raw results: ", result);
-          setQueryResults(result)
-        }
-      )
+          setFormedQuery(result.query);
+          setModelTime(result.model_time)
+          setQueryTime(result.query_time)
+          setQueryResults(result.results);
+          console.log(result)
+          setLoading(false);
+        })
   }
 
   return (
@@ -128,7 +118,12 @@ export default function Home() {
 
 
       <main className="flex min-h-screen flex-col items-center justify-start p-24">
-        <div className="flex w-full max-w-5xl items-center lg:flex justify-between">
+        <div
+          className="flex w-full max-w-5xl items-center lg:flex justify-around"
+          style={{
+            opacity: loading ? "0.5" : "1"
+          }}
+        >
           <div className="flex-col">
             <h1 className="text-neutral-200 my-5 text-xl justify-center"> Ask A Question </h1>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -146,28 +141,37 @@ export default function Home() {
             <h3 className="text-neutral-200 my-5 text-xl justify-center"> Generated SQL Query</h3>
 
             <div className="bg-stone-900 rounded-md p-6  border border-slate-600 shadow-lg shadow-indigo-500/40 my-5 min-w-96 hover:z-50 ">
-              <pre className="text-blue-300 my-6 text-xl font-semibold leading-8 max-h-64 max-w-2xl overflow-auto"> {formedQuery} </pre>
+              <pre className="text-blue-300 my-6 text-xl font-semibold leading-8 max-h-64 max-w-2xl overflow-auto whitespace-pre-wrap "> {formedQuery} </pre>
             </div>
-            <section className="flex justify-center">
-              {formedQuery.length > 0
-                ?
-                <button
-                  className="rounded-md bg-slate-800 justify-center py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2"
-                  onClick={getResults}>
-                  RUN
-                </button>
-                :
-                <></>
-              }
-
-            </section>
           </div>
         </div>
 
-        <div className="flex-col w-full my-5 max-w-5xl lg:flex">
+        <div className="flex-col w-full my-5 max-w-5xl lg:flex item-center">
+
+          {
+            loading
+              ?
+              <MagnifyingGlass
+                visible={true}
+                height="300"
+                width="300"
+                ariaLabel="magnifying-glass-loading"
+                wrapperStyle={{}}
+                wrapperClass="magnifying-glass-wrapper"
+                glassColor="#c0efff"
+                color="#e15b64"
+              />
+              :
+              <></>
+          }
+
           {queryResults.length > 0
             ?
-            <MaterialTable queryResults={queryResults} />
+            <MaterialTable
+              queryResults={queryResults}
+              modelTime={modelTime}
+              queryTime={queryTime}
+            />
             :
             <></>
           }

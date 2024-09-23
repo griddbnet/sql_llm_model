@@ -15,7 +15,15 @@ type GenericRowData = {
   [key: string]: unknown;
 }
 
-export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) => {
+export const MaterialTable = (
+  props:
+    {
+      modelTime: number;
+      queryTime: number;
+      queryResults: string[][]
+    }
+) => {
+  const { modelTime, queryTime, queryResults } = props
 
   const cols: Col[] = []
 
@@ -52,7 +60,7 @@ export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) =>
     return chartData
   }, [queryResults])
 
-  const baseBackgroundColor = 'rgba(3, 44, 43, 1)'
+  const baseBackgroundColor = '#1F2041'
 
 
   const table = useMaterialReactTable({
@@ -89,7 +97,7 @@ export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) =>
         border: '1px solid rgba(81, 81, 81, .5)',
         fontWeight: 'bold',
         color: 'white',
-        backgroundColor: 'rgba(3, 55, 43, 1)',
+        backgroundColor: '#4B3F72',
       },
     },
     muiTableBodyCellProps: {
@@ -97,8 +105,11 @@ export const MaterialTable = ({ queryResults }: { queryResults: string[][] }) =>
         border: '1px solid rgba(81, 81, 81, .5)',
         color: 'white',
       },
-    }
+    },
+    renderCaption: ({ table }) =>
+      `Model Time: ${modelTime.toFixed(2)} seconds || Query Time: ${queryTime.toFixed(2)} seconds`,
   });
+
 
   return <MaterialReactTable table={table} />;
 };
