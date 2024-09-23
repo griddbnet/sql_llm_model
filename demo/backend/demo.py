@@ -7,6 +7,7 @@ import jpype
 import jpype.dbapi2
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, GenerationConfig
 from context import *
+
 jpype.startJVM(jpype.getDefaultJVMPath(), "-ea")
 url = "jdbc:gs://192.168.168.192:20001/myCluster/public"
 conn = jpype.dbapi2.connect(url, driver="com.toshiba.mwcloud.gs.sql.Driver", driver_args={"user": "admin", "password": "admin"})
