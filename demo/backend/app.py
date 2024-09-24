@@ -72,12 +72,12 @@ def nlquery():
     model_start = time.time()
     query = translate_to_sql_select(context,question)
     model_end = time.time()
-    print("Query:", wquery)
+    print("Query:", query)
 
     query_start = time.time()
     curs = conn.cursor()
     try:
-        curs.execute(wquery)
+        curs.execute(query)
         rows = curs.fetchall()
         query_end = time.time()
         return json.dumps({ 'model_time' : model_end - model_start, 
