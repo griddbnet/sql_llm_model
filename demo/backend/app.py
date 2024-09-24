@@ -88,4 +88,4 @@ def nlquery():
         abort(400, 'Generated query was not successful')
 
 if __name__ == '__main__':
-   app.run(port=2929, debug=True)
+   app.run(host="0.0.0.0", port=2929, debug=True)
