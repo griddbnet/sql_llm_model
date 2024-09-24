@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import {
-  MaterialReactTable, //import alternative sub-component if we do not want toolbars
+  MRT_Table, //import alternative sub-component if we do not want toolbars
   type MRT_ColumnDef,
   useMaterialReactTable,
 } from 'material-react-table';
@@ -29,14 +29,12 @@ export const MaterialTable = (
 
   for (let i = 0; i < queryResults[0].length; i++) {
     const tmp = {
-      accessorKey: `col-#-${i}`,
-      header: `col-#-${i}`,
+      accessorKey: `results-${i}`,
+      header: `Model Time: ${modelTime.toFixed(2)}s    Query Time: ${queryTime.toFixed(2)}s`,
       muiTableBodyCellProps: {
         align: "center"
       },
-      muiTableHeadCellProps: {
-        align: "center"
-      }
+
     }
     cols.push(tmp)
   }
@@ -52,7 +50,7 @@ export const MaterialTable = (
     queryResults.forEach((row, jidx) => {
       const tmp: GenericRowData = {}
       row.forEach((val, idx) => {
-        const keyName: string = `col-#-${idx}`
+        const keyName: string = `results-${idx}`
         tmp[keyName] = val.toString()
       })
       chartData[jidx] = tmp;
@@ -60,7 +58,7 @@ export const MaterialTable = (
     return chartData
   }, [queryResults])
 
-  const baseBackgroundColor = '#1F2041'
+  const baseBackgroundColor = '#000'
 
 
   const table = useMaterialReactTable({
@@ -70,14 +68,8 @@ export const MaterialTable = (
     enableColumnActions: false,
     enableColumnFilters: false,
     enableTopToolbar: false,
-    enablePagination: true,
+    enablePagination: false,
     enableSorting: false,
-    positionPagination: "both",
-    muiPaginationProps: {
-      color: 'secondary',
-      shape: 'rounded',
-      showRowsPerPage: true,
-    },
     muiTableBodyRowProps: { hover: false },
     mrtTheme: () => ({
       baseBackgroundColor: baseBackgroundColor,
@@ -97,7 +89,7 @@ export const MaterialTable = (
         border: '1px solid rgba(81, 81, 81, .5)',
         fontWeight: 'bold',
         color: 'white',
-        backgroundColor: '#4B3F72',
+        backgroundColor: '#000',
       },
     },
     muiTableBodyCellProps: {
@@ -106,12 +98,12 @@ export const MaterialTable = (
         color: 'white',
       },
     },
-    renderCaption: ({ table }) =>
-      `Model Time: ${modelTime.toFixed(2)} seconds || Query Time: ${queryTime.toFixed(2)} seconds`,
+    // renderCaption: ({ table }) =>
+    //   `Model Time: ${modelTime.toFixed(2)}s || Query Time: ${queryTime.toFixed(2)}s`,
   });
 
 
-  return <MaterialReactTable table={table} />;
+  return <MRT_Table table={table} />;
 };
 
 export default MaterialTable;

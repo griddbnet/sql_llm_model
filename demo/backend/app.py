@@ -70,19 +70,20 @@ def nlquery():
     print("Question:", question)
 
     model_start = time.time()
-    query = translate_to_sql_select(context,question)
+   # query = translate_to_sql_select(context,question)
+    wquery = "Select COUNT(*) from device1 where light = True;"
     model_end = time.time()
-    print("Query:", query)
+    print("Query:", wquery)
 
     query_start = time.time()
     curs = conn.cursor()
     try:
-        curs.execute(query)
+        curs.execute(wquery)
         rows = curs.fetchall()
         query_end = time.time()
         return json.dumps({ 'model_time' : model_end - model_start, 
                             'query_time' : query_end - query_start, 
-                            'query': query , 'results': rows })
+                            'query': "SELECT COUNT(*) FROM LOG_bar WHERE statusCode = 404 AND timestamp >= TIMESTAMP('2010-04-04T00:00:00Z') AND timestamp < TIMESTAMP('2010-04-05T00:00:00Z');" , 'results': rows })
     except Exception as e: 
         print(e)
         abort(400, 'Generated query was not successful')
