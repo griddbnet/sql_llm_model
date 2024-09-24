@@ -3,7 +3,7 @@ import * as React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { MagnifyingGlass } from 'react-loader-spinner'
+import { MagnifyingGlass, RotatingLines } from 'react-loader-spinner'
 
 const darkTheme = createTheme({
   palette: {
@@ -119,12 +119,9 @@ export default function Home() {
 
       <main className="flex min-h-screen flex-col items-center justify-start p-24">
         <div
-          className="flex w-full max-w-5xl items-center lg:flex justify-around"
-          style={{
-            opacity: loading ? "0.5" : "1"
-          }}
+          className="flex w-full max-w-7xl p-10 items-center lg:flex justify-start border border-stone-700 bg-slate-900 rounded-lg"
         >
-          <div className="flex-col">
+          <div className="flex-col m-2 min-h-[300px]">
             <h1 className="text-neutral-200 my-5 text-xl justify-center"> Ask A Question </h1>
             <form onSubmit={handleSubmit(onSubmit)}>
               <section className="flex flex-col justify-center align-center gap-4">
@@ -132,51 +129,47 @@ export default function Home() {
                 {errors.question && <span>This field is required</span>}
               </section>
               <section className="flex justify-center">
-                <input className="bg-slate-600 px-3 py-2 my-4 rounded-md cursor-pointer" type="submit" />
+
+                {loading 
+                  ? 
+                  <RotatingLines
+                    visible={true}
+                    width="48"
+                    strokeWidth="5"
+                    animationDuration="0.75"
+                    ariaLabel="rotating-lines-loading"
+                    />
+                  :
+                  <input className="bg-slate-600 px-3 py-2 my-4 rounded-md cursor-pointer" type="submit" /> 
+              }
+  
               </section>
             </form>
           </div>
 
-          <div className="flex-col">
+          <div className="flex-col m-2 min-h-[300px]">
             <h3 className="text-neutral-200 my-5 text-xl justify-center"> Generated SQL Query</h3>
 
-            <div className="bg-stone-900 rounded-md p-6  border border-slate-600 shadow-lg shadow-indigo-500/40 my-5 min-w-96 hover:z-50 ">
+            <div className="bg-black rounded-md p-4 border border-slate-600 shadow-lg shadow-indigo-500/40 my-5 min-w-96 hover:z-50 ">
               <pre className="text-blue-300 my-6 text-xl font-semibold leading-8 max-h-64 max-w-2xl overflow-auto whitespace-pre-wrap "> {formedQuery} </pre>
             </div>
           </div>
-        </div>
-
-        <div className="flex-col w-full my-5 max-w-5xl lg:flex item-center">
-
-          {
-            loading
-              ?
-              <MagnifyingGlass
-                visible={true}
-                height="300"
-                width="300"
-                ariaLabel="magnifying-glass-loading"
-                wrapperStyle={{}}
-                wrapperClass="magnifying-glass-wrapper"
-                glassColor="#c0efff"
-                color="#e15b64"
-              />
-              :
-              <></>
-          }
-
+          <div className="flex-col m-2 items-center min-h-[300px]">
           {queryResults.length > 0
             ?
+            <>
+            <h3 className="text-neutral-200 my-5 text-xl justify-center"> Results</h3>
             <MaterialTable
               queryResults={queryResults}
               modelTime={modelTime}
               queryTime={queryTime}
             />
+            </>
             :
             <></>
           }
+          </div>
         </div>
-
       </main>
 
     </ThemeProvider>
