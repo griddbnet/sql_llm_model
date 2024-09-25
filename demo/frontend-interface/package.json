@@ -4,16 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && rm -rf ../backend/web",
     "flask": "mkdir ../backend/web ../backend/web/static && mv out/* ../backend/web/static",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.1",
+    "@mui/material": "^6.1.1",
+    "@mui/x-date-pickers": "^7.18.0",
+    "material-react-table": "^3.0.1",
     "next": "14.2.7",
     "react": "^18",
     "react-dom": "^18",
-    "react-hook-form": "^7.53.0"
+    "react-hook-form": "^7.53.0",
+    "react-loader-spinner": "^6.1.6"
   },
   "devDependencies": {
     "@types/node": "^20",

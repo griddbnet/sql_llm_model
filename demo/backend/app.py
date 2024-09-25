@@ -1,20 +1,24 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, abort
 from flask_cors import CORS, cross_origin
+#from context import get_col_names
 import json
 import os
-#import torch
+import torch
 import jpype
 import jpype.dbapi2
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, GenerationConfig
+import time
+from context import *
 
 jpype.startJVM(jpype.getDefaultJVMPath(), "-ea")
 url = "jdbc:gs://127.0.0.1:20001/myCluster/public"
 conn = jpype.dbapi2.connect(url, driver="com.toshiba.mwcloud.gs.sql.Driver", driver_args={"user": "admin", "password": "admin"})
 
-#device = "cuda:0" if torch.cuda.is_available() else "cpu"
-device= "cpu"
-print("Using ",device)
-#model = AutoModelForSeq2SeqLM.from_pretrained("model/").to(device)
-#tokenizer = AutoTokenizer.from_pretrained("t5-small")
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+model = AutoModelForSeq2SeqLM.from_pretrained("griddbnet/griddb_sql_llm").to(device)
+tokenizer = AutoTokenizer.from_pretrained("t5-small")
+new_tokens = ['<=', '<= ', ' <=', ' <', '<', '< ', '>= ', ' >=', '>=']
+tokenizer.add_tokens(new_tokens)
 
 def translate_to_sql_select(context, question):
     prompt = f"""Tables:
@@ -57,18 +61,32 @@ def query():
    print(time.time() - start, ":", query)
    return query
 
+
+
 @app.route('/nlquery')
 def nlquery():
     question = request.args.get('question')
     context = get_local_context() 
-    query = translate_to_sql_select(context,question)
+    print("Question:", question)
+
+    model_start = time.time()
+   # query = translate_to_sql_select(context,question)
+    wquery = "Select COUNT(*) from device1 where light = True;"
+    model_end = time.time()
+    print("Query:", wquery)
+
+    query_start = time.time()
     curs = conn.cursor()
     try:
-        curs.execute(query)
+        curs.execute(wquery)
         rows = curs.fetchall()
-        return json.dumps(rows) 
-    else:
-        abort(400, 'Generated query was not successful') 
+        query_end = time.time()
+        return json.dumps({ 'model_time' : model_end - model_start, 
+                            'query_time' : query_end - query_start, 
+                            'query': "SELECT COUNT(*) FROM LOG_bar WHERE statusCode = 404 AND timestamp >= TIMESTAMP('2010-04-04T00:00:00Z') AND timestamp < TIMESTAMP('2010-04-05T00:00:00Z');" , 'results': rows })
+    except Exception as e: 
+        print(e)
+        abort(400, 'Generated query was not successful')
 
 if __name__ == '__main__':
-   app.run(port=2929, debug=True)
+   app.run(host="0.0.0.0", port=2929, debug=True)
