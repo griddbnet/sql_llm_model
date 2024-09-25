@@ -1,4 +1,4 @@
-!()[demo.gif]
+![](demo.gif)
 
 # Introduction
 
