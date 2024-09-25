@@ -1,3 +1,5 @@
+!()[demo.gif]
+
 # Introduction
 
 With the rise in popularity of using Large Language Models (LLMs), general purpose models like GPT-4 have attracted the most interest and media coverage, but many other specialized models exist for the purpose of code generation. While many of these models are extremely large and require immense compute power to train and execute, some LLMs can be trained and executed on platforms that are practical and cost effective.
@@ -211,6 +213,8 @@ For the filtered data set, the 10% test split was used for the evaluation which 
 For the GridDB specific queries, the generated data set had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
 
 # Production Implementation
+
+![](inference_diagram.png)
 
 Using the model in production is straight forward. The context can be fetched using GridDB's NoSQL API:
 
