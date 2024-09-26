@@ -163,6 +163,7 @@ export default function Home() {
               queryResults={queryResults}
               modelTime={modelTime}
               queryTime={queryTime}
+              formedQuery={formedQuery}
             />
             </>
             :
