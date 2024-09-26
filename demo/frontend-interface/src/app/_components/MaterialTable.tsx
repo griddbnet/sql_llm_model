@@ -20,20 +20,33 @@ export const MaterialTable = (
     {
       modelTime: number;
       queryTime: number;
-      queryResults: string[][]
+      queryResults: string[][];
+      formedQuery: string;
     }
 ) => {
-  const { modelTime, queryTime, queryResults } = props
+  const { modelTime, queryTime, queryResults, formedQuery } = props
 
   const cols: Col[] = []
 
   for (let i = 0; i < queryResults[0].length; i++) {
+    const queryStr = formedQuery.split(' ');
     const tmp = {
       accessorKey: `results-${i}`,
-      header: `Model Time: ${modelTime.toFixed(2)}s    Query Time: ${queryTime.toFixed(2)}s`,
+      header: queryStr[1],
       muiTableBodyCellProps: {
         align: "center"
       },
+      muiTableHeadCellProps: {
+        align: "center"
+      },
+      Footer: () => (
+        <>
+          <div className="flex-col">
+            <div className="flex"> {`Model Time: ${modelTime.toFixed(2)}s`}</div> 
+            <div className="flex"> {`Query Time: ${queryTime.toFixed(2)}s`}</div> 
+          </div>
+        </>
+      ),
 
     }
     cols.push(tmp)
@@ -96,6 +109,7 @@ export const MaterialTable = (
       sx: {
         border: '1px solid rgba(81, 81, 81, .5)',
         color: 'white',
+        fontSize: '20px'
       },
     },
     // renderCaption: ({ table }) =>
