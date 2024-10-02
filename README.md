@@ -2,13 +2,15 @@
 
 # Introduction
 
+GridDB is a time series database available both on-premise and on the cloud optimized for IoT and Big Data that was developed by Toshiba Digital Solutions Corporation. It features an unique key-container model designed specifically to handle both metadata and time series data. It's in-memory architecture allows incredible ingestion and query performance. GridDB is also horizontally scalable to improve both performance and reliability. 
+
 With the rise in popularity of using Large Language Models (LLMs), general purpose models like GPT-4 have attracted the most interest and media coverage, but many other specialized models exist for the purpose of code generation. While many of these models are extremely large and require immense compute power to train and execute, some LLMs can be trained and executed on platforms that are practical and cost effective.
 
-In this technical report, we demonstrate using an LLM to generate queries for use with GridDB's SQL interface. After creating the model we measure the model accuracy and show how to integrate the model into a Flask Application.
+As every database uses a slightly different form of SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine-tuned for GridDB and experience tells us that an off the shelf LLM would not produce suitable queries.
 
-Every database uses a slightly different form of SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine-tuned for GridDB and experience tells us that an off the shelf LLM would not produce suitable queries.
+There are both consumer and business use cases for using an LLM to query GridDB. For consumers, in would enable the end user to ask simple questions about their own data such as "When do I consume the most electricity?". For business analysts and managers, it extends their business intelligence tools allowing for more adhoc queries to dive deeper 
 
-The process used to create and use an LLM for GridDB is as follows:
+In this technical report, we demonstrate how software developers can utilize an LLM to generate queries for use with GridDB's SQL interface to enhance their application. The process used to create and use an LLM for GridDB is as follows:
 
 1. Determine SQL Generation performance of other models and the feasibility of fine tuning these other models. 
 2. Find the datasets that were used to train the models selected in Step 1.
@@ -212,11 +214,17 @@ For the filtered data set, the 10% test split was used for the evaluation which 
 
 For the GridDB specific queries, the generated data set had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
 
-# Production Implementation
+# Application Implementation
+
+There are many ways to integrate the LLM into an application. LLM inference could be performed on the edge on the user's device which would allow for greater scalability but also much higher end user system requirements. 
+
+If the inference is performed on the server side, it can be bundled into the current application or as a seperate service that communicates with the current application. This would allow inference to run on dedicated high performance instances and thus inference would have minimal impact on the existing application's performance. 
+
+We will directly bundle the LLM into our application into the demo for simplicity's sake. 
 
 ![](inference_diagram.png)
 
-Using the model in production is straight forward. The context can be fetched using GridDB's NoSQL API:
+Now adding the code to use the model in your application is straight forward. The context can be fetched using GridDB's NoSQL API:
 
 ```python
 containers = []
@@ -279,6 +287,9 @@ While the model is easily incorporated into any Flask or other Python applicatio
 
 # Conclusion
 
+We hope the process of creating a training data set, performing the training and using the resulting LLM within an application to query your data was insightful and educational.
+
 Using LLM, end users including IoT device owners, corporate analysts, managers, customer service, and others are able to query data stored in GridDB without having to know SQL. While the queries used to demonstrate the LLM in this project are relatively simple, the model appears to be extensible to other query types and methods. Furthermore, the T5-small model is efficient to train, not requiring large investments in hardware to to train or run inference on. 
 
-The source code used in the project is available at https://github.com/griddbnet/sql_llm_model. The finished model can be downloaded from HuggingFace https://huggingface.co/griddbnet.
+In the future, with a larger, more diverse training data set the and advancements even in the base model performing natural language queries will become even more common place and accurate. The source code used in the project is available at https://github.com/griddbnet/sql_llm_model. The finished model can be downloaded from HuggingFace https://huggingface.co/griddbnet.
+
