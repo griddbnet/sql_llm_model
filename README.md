@@ -8,7 +8,7 @@ With the rise in popularity of using Large Language Models (LLMs), general purpo
 
 As every database uses a slightly different form of SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine-tuned for GridDB and experience tells us that an off the shelf LLM would not produce suitable queries.
 
-There are both consumer and business use cases for using an LLM to query GridDB. For consumers, in would enable the end user to ask simple questions about their own data such as "When do I consume the most electricity?". For business analysts and managers, it extends their business intelligence tools allowing for more adhoc queries to dive deeper 
+There are both consumer and business use cases for using an LLM to query GridDB. For consumers, the LLM would enable the end user to ask simple questions about their own data such as "When do I consume the most electricity?". For business analysts and managers, it extends their business intelligence tools allowing for more ad-hoc queries to dive deeper 
 
 In this technical report, we demonstrate how software developers can utilize an LLM to generate queries for use with GridDB's SQL interface to enhance their application. The process used to create and use an LLM for GridDB is as follows:
 
@@ -87,7 +87,7 @@ None of the data in the filtered dataset supports GridDB specific functionality.
 
 The first is GridDB’s Key-Container data model. Most relational databases store all data in one table, while GridDB recommends splitting data into multiple tables. For example, data for device #1 would be stored in tsdata_1 and data for device #20 in tsdata_20 so the human question of “What is the maximum temperature recorded on device 12?” would be the SQL query of `SELECT max(temp) FROM tsdata_12` instead of `SELECT max(temp) FROM tsdata WHERE device = ‘12’”` as would be normal in another database.
 
-The second featured we wanted to support was fetching data, in particular aggregations for a given period. GridDB uses the TIMESTAMP() SQL function to compare time series data in a query. For example, to select average temperature in 2024, you would use the query `SELECT avg(temp) from tsdata_12 where ts >= TIMESTAMP(‘2024-01-01’) and ts < TIMESTAMP(‘2025-01-01’)`.
+The second feature we wanted to support was fetching data, in particular aggregations for a given period. GridDB uses the TIMESTAMP() SQL function to compare time series data in a query. For example, to select average temperature in 2024, you would use the query `SELECT avg(temp) from tsdata_12 where ts >= TIMESTAMP(‘2024-01-01’) and ts < TIMESTAMP(‘2025-01-01’)`.
 
 To do this, a new tool was developed that could generate a human question with corresponding SQL query answer based on a given template. Iterating on the template with random values for the time period, container identifier, aggregation, etc would build a reasonable sized data set to fine tune the model with. 
 
@@ -119,7 +119,7 @@ Would produce :
 "answer": "SELECT MAX(humidity) FROM devices WHERE ts > TIMESTAMP('2011-06-01T00:00:00Z') and ts < TIMESTAMP('2011-07-01T00:00:00Z');"}
 ```
 
-We created five to six templated queries that both did and did not use the TIMESTAMP() function for five different contexts which both did and did not use multiple tables per the Key-Container model and then with the dataset creation tool, generated 100 different question/answer pairs per query for a total of 3600 queries. As automatic dataset splitting resulted in a disproportionate amounts of one context over another in the test dataset, a second test dataset was generated with only a single question/answer pair for each templated query.
+We created five to six templated queries that both did and did not use the TIMESTAMP() function for five different contexts which both did and did not use multiple tables per the Key-Container model and then with the dataset creation tool, generated 100 different question/answer pairs per query for a total of 3600 queries. As automatic dataset splitting resulted in a disproportionate amount of one context over another in the test dataset, a second test dataset was generated with only a single question/answer pair for each templated query.
 
 
 # Fine Tuning
@@ -189,7 +189,7 @@ Using an AMD Ryzen Threadripper 2990WX with an NVIDIA 4070GTX, training took app
 
 # Evaluation
 
-Using either the 10% test split of the training dataset or the generated test dataset, the same tokenization method was used to build input for the model. The output answer was generated for every input and compared using HuggingFace’s ROUGE evaluation library. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summiztion models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
+Using either the 10% test split of the training dataset or the generated test dataset, the same tokenization method was used to build input for the model. The output answer was generated for every input and compared using HuggingFace’s ROUGE evaluation library. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summarization models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
 
 ```python
 try:
@@ -212,13 +212,13 @@ except:
 
 For the filtered data set, the 10% test split was used for the evaluation which produced ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, and rougeLsum: 0.9046684414637445. This compares well with the cssupport/t5-small-awesome-text-to-sql model.
 
-For the GridDB specific queries, the generated data set had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
+For the GridDB specific queries, the generated dataset had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
 
 # Application Implementation
 
 There are many ways to integrate the LLM into an application. LLM inference could be performed on the edge on the user's device which would allow for greater scalability but also much higher end user system requirements. 
 
-If the inference is performed on the server side, it can be bundled into the current application or as a seperate service that communicates with the current application. This would allow inference to run on dedicated high performance instances and thus inference would have minimal impact on the existing application's performance. 
+If the inference is performed on the server side, it can be bundled into the current application or as a separate service that communicates with the current application. This would allow inference to run on dedicated high performance instances and thus inference would have minimal impact on the existing application's performance. 
 
 We will directly bundle the LLM into our application into the demo for simplicity's sake. 
 
@@ -283,13 +283,13 @@ def nlquery():
         abort(400, 'Generated query was not successful')
 ```
 
-While the model is easily incorporated into any Flask or other Python application as shown, scalability may be difficult as each LLM invokation takes approximately 500 milliseconds using a AMD Ryzen Threadripper and NVIDIA 4070GTX. There are other projects such as https://github.com/Ki6an/fastT5 that will greatly improve the scalability of the GridDB LLM model.
+While the model is easily incorporated into any Flask or other Python application as shown, scalability may be difficult as each LLM invocation takes approximately 500 milliseconds using an AMD Ryzen Threadripper and NVIDIA 4070GTX. There are other projects such as https://github.com/Ki6an/fastT5 that will greatly improve the scalability of the GridDB LLM model.
 
 # Conclusion
 
-We hope the process of creating a training data set, performing the training and using the resulting LLM within an application to query your data was insightful and educational.
+We hope the process of creating a training dataset, performing the training and using the resulting LLM within an application to query your data was insightful and educational.
 
 Using LLM, end users including IoT device owners, corporate analysts, managers, customer service, and others are able to query data stored in GridDB without having to know SQL. While the queries used to demonstrate the LLM in this project are relatively simple, the model appears to be extensible to other query types and methods. Furthermore, the T5-small model is efficient to train, not requiring large investments in hardware to to train or run inference on. 
 
-In the future, with a larger, more diverse training data set the and advancements even in the base model performing natural language queries will become even more common place and accurate. The source code used in the project is available at https://github.com/griddbnet/sql_llm_model. The finished model can be downloaded from HuggingFace https://huggingface.co/griddbnet.
+In the future, with a larger, more diverse training dataset and advancements even in the base model performing natural language queries will become even more commonplace and accurate. The source code used in the project is available at https://github.com/griddbnet/sql_llm_model. The finished model can be downloaded from HuggingFace https://huggingface.co/griddbnet.
 
