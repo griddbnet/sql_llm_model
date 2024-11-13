@@ -213,7 +213,7 @@ except:
 This evaluation was performed for both the original filtered data set and also the generated GridDB specific data set and ROUGE metrics were gathered. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summarization models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
 
 | Metric | Filtered | GridDB Specific |
-| --- | --- |
+| --- | --- | --- |
 | ROUGE-1| 0.9220341258369449 | 0.893189189189189 |
 | ROUGE-2 | 0.8328271928176021 | 0.8556992481203007 |
 | ROUGE-L | 0.9039756047111251 | 0.8807387387387388 |
