@@ -8,7 +8,7 @@ With the rise in popularity of using Large Language Models (LLMs), general purpo
 
 As every database uses a slightly different form of SQL and GridDB is no different. In particular, GridDB has different time functions compared to other SQL databases and also uses a unique Key-Container data model where it is encouraged to store homogeneous data in multiple tables. With these differences in mind, the LLM must be fine-tuned for GridDB and experience tells us that an off the shelf LLM would not produce suitable queries.
 
-There are both consumer and business use cases for using an LLM to query GridDB. For consumers, the LLM would enable the end user to ask simple questions about their own data such as "When do I consume the most electricity?". For business analysts and managers, it extends their business intelligence tools allowing for more ad-hoc queries to dive deeper 
+There are both consumer and business use cases for using an LLM to query GridDB. For consumers, the LLM would enable the end user to ask simple questions about their own data such as "When do I consume the most electricity?". For business analysts and managers, it extends their business intelligence tools allowing for more ad-hoc queries to dive deeper into their organization's data.
 
 In this technical report, we demonstrate how software developers can utilize an LLM to generate queries for use with GridDB's SQL interface to enhance their application. The process used to create and use an LLM for GridDB is as follows:
 
@@ -189,8 +189,7 @@ Using an AMD Ryzen Threadripper 2990WX with an NVIDIA 4070GTX, training took app
 
 # Evaluation
 
-Using either the 10% test split of the training dataset or the generated test dataset, the same tokenization method was used to build input for the model. The output answer was generated for every input and compared using HuggingFace’s ROUGE evaluation library. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summarization models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
-
+Using either the 10% test split of the training dataset or the generated test dataset, the same tokenization method was used to build input for the model. The output answer was generated for every input and compared using HuggingFace’s ROUGE evaluation library. 
 ```python
 try:
     for stmt in data[context_name].split(";"):
@@ -210,9 +209,18 @@ except:
     bad=bad+1
 ```
 
-For the filtered data set, the 10% test split was used for the evaluation which produced ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, and rougeLsum: 0.9046684414637445. This compares well with the cssupport/t5-small-awesome-text-to-sql model.
 
-For the GridDB specific queries, the generated dataset had ROUGE metrics of rouge1: 0.9220341258369449, rouge2: 0.8328271928176021, rougeL: 0.9039756047111251, rougeLsum: 0.9046684414637445. Furthermore, the model was able to successfully generate queries that utilize GridDB Key-Container data model and where clauses from a variety of different calendar lengths. 
+This evaluation was performed for both the original filtered data set and also the generated GridDB specific data set and ROUGE metrics were gathered. ROUGE or Recall-Oriented Understudy for Gisting Evaluation is a set of metrics used to evaluate text transformation or summarization models by comparing human generated baseline answer versus the model generated response. Each ROUGE metric varies from 0 to 1, with 1 being a perfect match.
+
+| Metric | Filtered | GridDB Specific |
+| --- | --- |
+| ROUGE-1| 0.9220341258369449 | 0.893189189189189 |
+| ROUGE-2 | 0.8328271928176021 | 0.8556992481203007 |
+| ROUGE-L | 0.9039756047111251 | 0.8807387387387388 |
+
+* ROUGE-1 measures the overlap of the words between the riginal and infered answer.
+* ROUGE-2 refers to the overlap of pairs of words between the reference and infered answer.
+* ROUGE-L measures the longest sequence of words between the reference and infered answer that match.
 
 # Application Implementation
 
